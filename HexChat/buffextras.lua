@@ -1,9 +1,6 @@
 hexchat.register('Buffextras', '1', "Format messages from ZNC's buffextras module")
 
-local modes_for_lists = {}
-local modes_with_param = {}
-local modes_with_param_when_set = {}
-local modes_without_param = {}
+local chanmodes = {}
 
 local function strip_brackets (str)
 	return str:sub(2, #str - 1)
@@ -14,11 +11,7 @@ hexchat.hook_server_attrs('005', function (word, word_eol, attrs)
 		modes = value:match('^CHANMODES=(.*)$')
 		if modes ~= nil then
 			server = word[1]:match('^:(.*)$')
-			modes_a, modes_b, modes_c, modes_d = modes:match('^(.*),(.*),(.*),(.*)$')
-			modes_for_lists[server] = modes_a
-			modes_with_param[server] = modes_b
-			modes_with_param_when_set[server] = modes_c
-			modes_without_param[server] = modes_d
+			chanmodes[server] = modes
 			break
 		end
 	end
@@ -67,19 +60,16 @@ hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 		if hexchat.prefs['irc_raw_modes'] == true then
 			emit('Raw Modes', name, string.format('%s %s', channel, modes))
 		else
-			local nickmodes
-			for chan in hexchat.iterate('channels') do
-				if chan.context == hexchat.get_context() then
-					nickmodes = chan.nickmodes
-					break
-				end
-			end
+			nickmodes = hexchat.props['nickmodes']
+			--chanmodes = hexchat.props['chanmodes']
 
 			server = hexchat.get_info('server')
-			local modes_for_lists = modes_for_lists[server]
-			local modes_with_param = modes_with_param[server]
-			local modes_with_param_when_set = modes_with_param_when_set[server]
-			local modes_without_param = modes_without_param[server]
+			local chanmodes = chanmodes[server]
+			if chanmodes == nil then
+				chanmodes = 'beI,k,l'
+			end
+
+			modes_for_lists, modes_with_param, modes_with_param_when_set, modes_without_param = chanmodes:match('^([^,]*),?([^,]*),?([^,]*),?([^,]*)$')
 
 			local sign
 			local param_pos = 8

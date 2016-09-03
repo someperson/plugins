@@ -38,7 +38,12 @@ hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 	elseif is_event('kicked') then
 		emit('Kick', nick, word[6], channel, strip_brackets(word_eol[8]))
 	elseif is_event('set mode') then
-		emit('Raw Modes', nick, string.format('%s %s', channel, word_eol[7]))
+		if nick == nil then
+			server = word[4]:match('^:([^!]+)$')
+			emit('Channel Mode Generic', server, string.format('%s %s', word_eol[7]:match('^(.*%S)'), channel))
+		else
+			emit('Channel Mode Generic', nick, string.format('%s %s', word_eol[7]:match('^(.*%S)'), channel))
+		end
 	else
 		return -- Unknown event
 	end

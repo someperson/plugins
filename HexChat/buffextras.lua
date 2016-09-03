@@ -38,11 +38,15 @@ hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 	elseif is_event('kicked') then
 		emit('Kick', nick, word[6], channel, strip_brackets(word_eol[8]))
 	elseif is_event('set mode') then
-		if nick == nil then
-			server = word[4]:match('^:([^!]+)$')
-			emit('Channel Mode Generic', server, string.format('%s %s', word_eol[7]:match('^(.*%S)'), channel))
+		modes = word_eol[7]:match('^(.*%S)')
+		name = nick
+		if name == nil then
+			name = word[4]:match('^:([^!]+)$')
+		end
+		if hexchat.prefs['irc_raw_modes'] == true then
+			emit('Raw Modes', name, string.format('%s %s', channel, modes))
 		else
-			emit('Channel Mode Generic', nick, string.format('%s %s', word_eol[7]:match('^(.*%S)'), channel))
+			emit('Channel Mode Generic', name, string.format('%s %s', modes, channel))
 		end
 	else
 		return -- Unknown event

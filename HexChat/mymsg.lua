@@ -1,10 +1,21 @@
+-- SPDX-License-Identifier: MIT
 hexchat.register('MyMessage', '2', 'Properly show your own messages in ZNC playback')
+
+local function get_server_ctx()
+	local id = hexchat.prefs['id']
+	for chan in hexchat.iterate('channels') do
+		if chan.type == 1 and chan.id == id then
+			return chan.context
+		end
+	end
+	return hexchat.props.context
+end
 
 hexchat.hook_print('Capability List', function (args)
 	if args[2]:find('znc.in/self%-message') then
 		hexchat.command('CAP REQ znc.in/self-message')
 
-		local ctx = hexchat.props.context
+		local ctx = get_server_ctx()
 		hexchat.hook_timer(1, function ()
 			-- Emit right after this event
 			if ctx:set() then
@@ -17,7 +28,7 @@ end)
 local function prefix_is_channel (prefix)
 	local chantypes = hexchat.props['chantypes']
 	for i = 1, #chantypes do
-		if chantypes[i] == prefix then
+		if chantypes:sub(i, i) == prefix then
 			return true
 		end
 	end

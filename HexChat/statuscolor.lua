@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT
 hexchat.register('StatusColor', '1', 'Color nicks based upon user modes')
 
 -- TODO: Update these to reflect default theme
@@ -18,6 +19,13 @@ local function on_message (args, attrs, event)
 	local color = MODES[args[3]]
 	if not color then
 		return hexchat.EAT_NONE
+	end
+
+	-- In > 2.12.3 we need to be explicit about color changes
+	if event:sub(-7, -1) == 'Hilight' then
+		hexchat.command('gui color 3')
+	elseif event:sub(1, 4) ~= 'Your' then
+		hexchat.command('gui color 2')
 	end
 
 	edited = true

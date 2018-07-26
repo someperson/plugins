@@ -1,3 +1,4 @@
+-- SPDX-License-Identifier: MIT
 hexchat.register('ZNC Buffers', '1', 'Add menu options to manage ZNC buffers')
 
 -- Add menus
@@ -29,4 +30,17 @@ hexchat.hook_server('PRIVMSG', function(word, word_eol)
 		recently_cleared[cleared_channel] = nil
 		return hexchat.EAT_ALL
 	end
+end)
+
+hexchat.hook_command('zncclosepm', function (word, word_eol)
+  local id = hexchat.props.id
+
+  for chan in hexchat.iterate('channels') do
+    if chan.id == id and chan.type == 3 then
+      hexchat.command('.zncclearbuffer ' .. chan.channel)
+      chan.context:command('close')
+    end
+  end
+
+  return hexchat.EAT_ALL
 end)

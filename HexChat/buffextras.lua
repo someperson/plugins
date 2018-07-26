@@ -1,23 +1,5 @@
 hexchat.register('Buffextras', '1', "Format messages from ZNC's buffextras module")
 
-local chanmodes = {}
-
-local function strip_brackets (str)
-	return str:sub(2, #str - 1)
-end
-
-hexchat.hook_server_attrs('005', function (word, word_eol, attrs)
-	for key,value in pairs(word) do
-		modes = value:match('^CHANMODES=(.*)$')
-		if modes ~= nil then
-			server = word[1]:match('^:(.*)$')
-			chanmodes[server] = modes
-			break
-		end
-	end
-	return
-end, hexchat.PRI_HIGH)
-
 hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 	if not word[1]:match('^:%*buffextras!') then
 		return
@@ -36,11 +18,11 @@ hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 
 	if is_event('joined') then
 		emit('Join', nick, channel, host)
-	elseif is_event('quit with message') then
-		emit('Quit', nick, strip_brackets(word_eol[8]), host)
-	elseif is_event('parted with message') then
-		local reason = strip_brackets(word_eol[8])
-		if reason ~= '' then
+	elseif is_event('quit') then
+		emit('Quit', nick, word_eol[6], host)
+	elseif is_event('parted') then
+		local reason = word_eol[6]
+		if reason and reason ~= '' then
 			emit('Part with Reason', nick, host, channel, reason)
 		else
 			emit('Part', nick, host, channel)
@@ -50,7 +32,7 @@ hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 	elseif is_event('changed the topic to') then
 		emit('Topic Change', nick, word_eol[9], channel)
 	elseif is_event('kicked') then
-		emit('Kick', nick, word[6], channel, strip_brackets(word_eol[8]))
+		emit('Kick', nick, word[6], channel, word_eol[9])
 	elseif is_event('set mode') then
 		modes = word_eol[7]:match('^(.*%S)')
 		name = nick
@@ -61,7 +43,7 @@ hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 			emit('Raw Modes', name, string.format('%s %s', channel, modes))
 		else
 			nickmodes = hexchat.props['nickmodes']
-			--chanmodes = hexchat.props['chanmodes']
+			chanmodes = hexchat.props['chanmodes']
 
 			server = hexchat.get_info('server')
 			local chanmodes = chanmodes[server]

@@ -1,4 +1,4 @@
---- SPDX-License-Identifier: MIT
+-- SPDX-License-Identifier: MIT
 hexchat.register('Buffextras', '1', "Format messages from ZNC's buffextras module")
 
 hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
@@ -43,8 +43,8 @@ hexchat.hook_server_attrs('PRIVMSG', function (word, word_eol, attrs)
 		if hexchat.prefs['irc_raw_modes'] == true then
 			emit('Raw Modes', name, string.format('%s %s', channel, modes))
 		else
-			nickmodes = hexchat.props['nickmodes']
-			chanmodes = hexchat.props['chanmodes']
+			local nickmodes = hexchat.props['nickmodes']
+			local chanmodes = hexchat.props['chanmodes']
 
 			server = hexchat.get_info('server')
 			local chanmodes = chanmodes[server]
